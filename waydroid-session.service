@@ -5,10 +5,22 @@ Wants=graphical-session.target
 
 [Service]
 Type=simple
+
+ExecStartPre=/usr/bin/mkdir -p %h/Android
+
 ExecStart=/usr/bin/waydroid session start
-ExecStartPost=/usr/bin/sh -c 'while [ ! -d /var/lib/waydroid/data/media/0 ]; do sleep 1; done; \
-mountpoint -q %h/Android || /usr/bin/sudo /usr/bin/mount --bind /var/lib/waydroid/data/media/0 %h/Android'
-ExecStopPost=/usr/bin/sudo /usr/bin/umount %h/Android
+
+ExecStartPost=/usr/bin/sh -c '\
+until /usr/bin/waydroid shell true >/dev/null 2>&1; do /bin/sleep 1; done; \
+/usr/bin/mountpoint -q %h/Android || \
+/usr/bin/sudo /usr/bin/mount --bind %h/.local/share/waydroid/data/media/0 %h/Android'
+
+ExecStop=/usr/bin/waydroid session stop
+
+ExecStopPost=/usr/bin/sh -c '\
+/usr/bin/mountpoint -q %h/Android && \
+/usr/bin/sudo /usr/bin/umount %h/Android'
+
 Restart=on-failure
 RestartSec=2
 
