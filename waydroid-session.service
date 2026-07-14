@@ -1,0 +1,22 @@
+[Unit]
+Description=Waydroid Session
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+
+# Start Waydroid
+ExecStart=/usr/bin/waydroid session start
+
+# Wait a bit for userdata to become available
+ExecStartPost=/usr/bin/sh -c 'sleep 3; mountpoint -q %h/Android || /usr/bin/mount --bind /var/lib/waydroid/data/media/0 %h/Android'
+
+# Unmount when stopping
+ExecStopPost=/usr/bin/umount %h/Android
+
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
